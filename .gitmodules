@@ -1,0 +1,3 @@
+[submodule "ctap-pt"]
+	path = ctap-pt
+	url = git@github.com:edemattos/ctap-pt.git
