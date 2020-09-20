@@ -1,0 +1,26 @@
+
+\section{Data}
+\label{section:data}
+
+The evaluation was conducted on the NLI-PT dataset, a compilation of 3,069 texts by European Portuguese learners originally collected for native language identification \citep{delrio2018, delrio2019a}. Entries are labeled according to their coarse CEFR proficiency level. The raw texts are accompanied by their tokenizations as well as part of speech, constituency, and dependency annotations—none of which were utilized for this analysis in order to make use of CTAP's end-to-end processing pipeline. Entries are labeled according to the corresponding student's native language and CEFR proficiency level group. The detailed breakdown is presented in Table~\ref{tab:nlipt}.
+
+\begin{table}[ht]
+\renewcommand{\arraystretch}{1.2}
+    \centering
+	\resizebox{\columnwidth}{!}{%
+    \begin{tabular}{@{}ccccccccccccccccc@{}}
+    \toprule
+        & {\scshape ara} & {\scshape chi} & {\scshape dut} & {\scshape eng} & {\scshape fre} & {\scshape ger} & {\scshape ita} & {\scshape jap} & {\scshape kor} & {\scshape pol} & {\scshape rom} & {\scshape rus} & {\scshape spa} & {\scshape swe} & {\scshape tet} & {\scshape total} \\
+    \midrule
+    {\scshape a} & 6 & 133 & 15 & 174 & 42 & 231 & 319 & 34 & 33 & 39 & 45 & 27 & 257 & 16 & 17 & 1,388 \\
+    {\scshape b} & 6 & 204 & 20 & 173 & 59 & 149 & 182 & 26 & 9 & 22 & 33 & 59 & 266 & 3 & 4 & 1,215 \\
+    {\scshape c} & 2 & 108 & 8 & 68 & 4 & 58 & 64 & 11 & 26 & 16 & 1 & 8 & 91 & 0 & 1 & 466 \\
+    \bottomrule
+    & 14 & 445 & 43 & 415 & 105 & 438 & 565 & 71 & 68 & 77 & 79 & 94 & 614 & 19 & 22 & 3,069 \\
+    \end{tabular}
+    }
+    \caption{Number of texts in NLI-PT, by CEFR level group and {\scshape l1}.}
+    \label{tab:nlipt}
+\end{table}
+
+Training, development, and test splits were not defined in the original dataset, and can therefore not be used to directly compare with previous work. Thus, an arbitrary split was generated with \texttt{random\_state=42}. 80\% was used for training with the remaining 20\% for evaluation. The division is further contingent upon CTAP's output, the sequence of which is inconsistent for each run. In addition to the unequal representation of proficiency levels, the texts are based on 148 different tasks also suffering from a heavy class imbalance. Instances are not organized or labeled by their topic.

@@ -1,0 +1,97 @@
+
+\section{Results}
+
+Average scores for 10-fold cross validation are reported along with the held-out test set. Following \cite{delrio2019a}, accuracy is used as the main evaluation metric with F1-score also provided due to the class imbalance. Since there is no test set provided by NLI-PT, direct comparisons are not possible.
+
+For individual feature groups, lexical features are the clear winner. This is also the largest class with 97 different calculations. Morphosyntactic features perform only slightly better than surface ones, even with a 51-feature disparity between the two, showing that surface features alone can explain a large amount of variance between proficiency levels. Cohesive devices are also able to exceed naïve baselines and score similarly to surface features, but are generally the weakest set.
+
+Using the feature subset provided by CfsSubsetEval, accuracy scores are on par with the entire feature set, though the F1-score reveals a noticeable dip when accounting for the class imbalance. Logistic Regression and SVMs are best when using all features, but Random Forests score better when using the subset.
+
+\pagebreak
+
+\vspace{\fill}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+    \centering
+    \begin{tabular}{@{}lC{1cm}C{1cm}cccc}
+    \toprule
+        & \multirow{2}{*}{{\scshape kind}} & \multirow{2}{*}{{\scshape size}} & \multicolumn{2}{c}{{\scshape 10-fold cv}} & \multicolumn{2}{c}{{\scshape test}} \\
+        & & & {\scshape $\mu$-f1} & {\scshape $\mu$-acc} & {\scshape f1} & {\scshape acc} \\
+        \midrule
+        Random Baseline & & & 0.33 & 0.33 & 0.33 & 0.33 \\
+        Majority Baseline & & & 0.20 & 0.45 & 0.20 & 0.45 \\
+        \midrule
+        Random Forest & \multirow{3}{*}{{\scshape sur}} & \multirow{3}{*}{20} & 0.50 & 0.62 & 0.49 & 0.61 \\
+        Logistic Regression & & & 0.46 & 0.63 & 0.47 & 0.63 \\
+        Support Vector Machine & & & 0.46 & 0.63 & 0.44 & 0.62 \\
+        \midrule
+        Random Forest & \multirow{3}{*}{{\scshape lex}} & \multirow{3}{*}{97} & 0.56 & 0.67 & 0.55 & 0.65 \\
+        Logistic Regression & & & \textbf{0.57} & \textbf{0.66} & \textbf{0.57} & \textbf{0.68} \\
+        Support Vector Machine & & & \textbf{0.57} & \textbf{0.66} & \textbf{0.57} & 0.64 \\
+        \midrule
+        Random Forest & \multirow{3}{*}{{\scshape msy}} & \multirow{3}{*}{71} & 0.50 & 0.63 & 0.53 & 0.65 \\
+        Logistic Regression & & & 0.48 & 0.63 & 0.47 & 0.62 \\
+        Support Vector Machine & & & 0.47 & 0.64 & 0.48 & 0.64 \\
+        \midrule
+        Random Forest & \multirow{3}{*}{{\scshape coh}} & \multirow{3}{*}{18} & 0.45 & 0.56 & 0.50 & 0.59 \\
+        Logistic Regression & & & 0.44 & 0.61 & 0.44 & 0.61 \\
+        Support Vector Machine & & & 0.44 & 0.61 & 0.44 & 0.62 \\
+    \bottomrule
+    \end{tabular}
+    \caption{Trials using surface, lexical, morphosyntactic, and cohesive feature sets.}
+    \label{tab:results}
+\end{table}
+
+\vspace{\fill}
+
+\pagebreak
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+    \centering
+    \begin{tabular}{@{}lC{1cm}C{1cm}cccc}
+    \toprule
+        & \multirow{2}{*}{{\scshape kind}} & \multirow{2}{*}{{\scshape size}} & \multicolumn{2}{c}{{\scshape 10-fold cv}} & \multicolumn{2}{c}{{\scshape test}} \\
+        & & & {\scshape $\mu$-f1} & {\scshape $\mu$-acc} & {\scshape f1} & {\scshape acc} \\
+        \midrule
+        Random Baseline & & & 0.33 & 0.33 & 0.33 & 0.33 \\
+        Majority Baseline & & & 0.20 & 0.45 & 0.20 & 0.45 \\
+        \midrule
+        Random Forest & \multirow{3}{*}{{\scshape cse}} & \multirow{3}{*}{53} & 0.56 & 0.67 & 0.58 & 0.68 \\
+        Logistic Regression & & & 0.58 & 0.67 & 0.56 & 0.68 \\
+        Support Vector Machine & & & 0.59 & \textbf{0.68} & 0.55 & 0.66 \\
+        \midrule
+        Random Forest & \multirow{3}{*}{{\scshape all}} & \multirow{3}{*}{241} & 0.56 & 0.67 & 0.54 & 0.67 \\
+        Logistic Regression & & & 0.59 & 0.67 & \textbf{0.61} & \textbf{0.69} \\
+        Support Vector Machine & & & \textbf{0.62} & \textbf{0.68} & \textbf{0.61} & 0.67 \\
+    \bottomrule
+    \end{tabular}
+    \caption{Scores achieved by systems using CfsSubsetEval (CSE) vs. all features.}
+    \label{tab:results}
+\end{table}
+
+\vspace{\fill}
+
+The confusion matrix for the test set in Table~\ref{tab:cm} shows that CEFR-A is the easiest class to predict, with CEFR-B faring slightly worse. CEFR-C is by far the worst predicted class, with an outright majority of instances being classified as its lower neighbor, followed by CEFR-A.
+
+\vspace{\fill}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+    \centering
+    \begin{tabular}{@{}lrrr@{}}
+    \toprule
+        Pred &    {\scshape a} & {\scshape b} & {\scshape c} \\
+        True &      &      &     \\
+        \midrule
+        {\scshape a} &  \textbf{225} &   48 &   5 \\
+        {\scshape b} &   58 &  \textbf{177} &   8 \\
+        {\scshape c} &   26 &  \textbf{53}  &  14 \\
+    \bottomrule
+    \end{tabular}
+    \caption{Confusion matrix for Logistic Regression.}
+    \label{tab:cm}
+\end{table}
+
+\vspace{\fill}

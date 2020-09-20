@@ -1,0 +1,261 @@
+\section{Methods}
+
+\subsection{Preparation}
+
+CTAP accepts unstructured text as input, so virtually no preprocessing was performed on the corpus. Raw texts were fed into the Corpus Manager and segmented, tokenized, tagged, and dependency parsed with Stanza using models trained on the Universal Dependencies Bosque treebank \citep{rademaker2017-bosque}.
+
+Contractions and otherwise multi-word expressions such as a clitic pronouns as in (\ref{en}, \ref{meso}) needed to be teased apart for part-of-speech tagging and parsing. Expanding surface forms in this way offsets other token boundaries in the original text, wherein the original word's span no longer aligns with those of the newly expanded sentence. The CoNLL-U format is able to represent these multi-word expressions natively during tokenization, which can then be used to update span offsets, greatly simplifying the annotation process. 
+
+In order to preserve surface length features such as the number of characters or number of syllables in the original input text, surface forms need to be stored alongside their underlying tokens. A new surface form analysis engine was therefore added to CTAP to accommodate this discrepancy.
+
+Stanza does not include a constituency parser, which is required for extracting syntactic complexity features. Stanford CoreNLP's Shift-Reduce Parser is a suitable alternative already present in CTAP, but does not offer pre-trained models for Portuguese. LX-Center has released a publicly available model \citep{silva2010}, but it is incompatible with newer versions of the Stanford Parser.
+
+In response, a new model was trained on the CINTIL-Treebank \citep{branco2014-cintil}, after aligning the part of speech tags with the existing UD tagset. Since certain tags were not present in CINTIL, such as {\scshape aux} for auxiliary verbs, these values had to be normalized as well. Phrase and bar-level categories were preserved even when their correlate head projections were modified to fit the UD scheme, as in {\scshape pp} for adpositions ({\scshape adp}) and $\overline{\mbox{{\scshape n}}}$ for nouns ({\scshape noun}).
+
+Customized, language-specific head-finding rules should normally be defined for training a new parsing model. However, a simple left-most head finder has been shown to perform sufficiently well for most tasks \citep{vadas2011-parsing}. For this study, using the \texttt{LeftHeadFinder}\footnote{\texttt{\url{https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/trees/LeftHeadFinder.html}}} for training the constituency parser resulted in a surprisingly decent baseline
+
+\subsection{Feature Engineering}
+
+For the complexity analysis, most feature calculations had already been defined for other languages in CTAP and only slight modifications were necessary to include Portuguese. For instance, 21 density features were easily added by declaring the relevant Universal Dependencies tags: Adjective, Adverb, Article, Auxiliary Verb, Cardinal Number, Common Noun, Conjunction, Coordinating Conjunction, Determiner, Function Words, Interjection, Lexical Words, Noun, Particle, Preposition, Punctuation, Pronoun, Proper Noun, Subordinating Conjunction, Symbol, and Verb.
+
+Lexical sophistication measures had also been integrated into CTAP, so it was therefore only necessary to add norm lists for Portuguese. Among them were: age of acquisition \citep{cameirão2010}, concreteness and imageability \citep{soares2016}, familiarity \citep{marques2007}, SUBTLEX frequency information \citep{soares-subtlex}, and discourse markers \citep{mendes2018-ldmpt}. Each of these were calculated on a type or token level, further divided into three categories: lexical words (LW), function words (FW), or both (all words; AW).
+
+Language-agnostic variation features previously discussed in Section~\ref{section:lexical} as well as the remaining lexical features are displayed in Table~\ref{tab:lex}.
+
+\begin{table}
+\renewcommand{\arraystretch}{1.2}
+    \centering
+	\resizebox{\columnwidth}{!}{%
+    \begin{tabular}{@{}L{1.25cm}L{6.5cm}L{5cm}@{}}
+    \toprule
+    \# & {\scshape name} & {\scshape formula} \\
+    \midrule
+    $f_1$ & TTR & $T/N$ \\
+    $f_2$ & RTTR & $T/\sqrt{N}$ \\
+    $f_3$ & CTTR & $T/\sqrt{2N}$\\
+    $f_4$ & LogTTR & $\log{(T)}/\log{(N)}$\\
+    $f_5$ & UberTTR & $\log^{2}{(N)}/\log{(N/T)}$\\
+    $f_6$ & MTLD & \cite{mccarthy2010} \\
+    \midrule
+    \multirow{2}{*}{$f_{7-12}$} & Adjective, Adverb, Lexical Type, Modifier, Noun, Verb & \multirow{2}{*}{$X_{type}/L$} \\
+    $f_{13}$ & VV1 & $V_{type}/L$\\
+    $f_{14}$ & CVV1 & $V_{type}/\sqrt{2V_{token}}$ \\
+    $f_{15}$ & SVV1 & ${V_{type}}^2/V_{token}$\\
+    \midrule
+    $f_{16-21}$ & Age of Acquisition & \multirow{10}{*}{$X_{type|token}/(N|L|F)$} \\
+    $f_{22-27}$ & Concreteness & \\
+    $f_{28-33}$ & Familiarity & \\
+    $f_{34-39}$ & Imageability & \\
+    $f_{40-45}$ & SUBTLEX Word Frequency & \\
+    $f_{46-51}$ & SUBTLEX Log Word Frequency & \\
+    $f_{52-57}$ & SUBTLEX Contextual Diversity & \\
+    $f_{58-63}$ & SUBTLEX Log Contextual Diversity & \\
+    $f_{64-69}$ & SUBTLEX Top 1-5k; Below Top 5k & \\
+    $f_{70-76}$ & SUBTLEX Zipfian Band 1-7 & \\
+    \midrule
+    $f_{77-97}$ & POS Density & $X / N$ \\
+    \bottomrule
+    \end{tabular}
+    }
+    \caption{Lexical features and their calculations. \textbf{Legend:} $N =$ number of tokens, $T =$ number of types, $L =$ number of lexical tokens, $F =$ number of function tokens.}
+    \label{tab:lex}
+\end{table}
+
+There are 21 dependency-based features, 14 general constituency counts, and 42 syntactic complexity ratios available for Portuguese. The rules for extracting constituency phenomena were defined using Tregex \citep{tregex}.
+
+Some morphosyntactic features have been added specifically for Portuguese. Clitic usage \citep{flores2014, costa2015}, mood \citep{flores2016, jesus2019}, and clefts \citep{lobo2019} are systems that have been demonstrated to follow certain development patterns and may correlate with {\scshape l2} proficiency growth.
+
+Table~\ref{tab:msy} catalogues all morphosyntactic features, with Portuguese clefts appearing separately in Table~\ref{tab:tregex} to demonstrate a subset of Tregex rules.
+
+\begin{table}[h]
+\renewcommand{\arraystretch}{1.2}
+    \centering
+	\resizebox{\columnwidth}{!}{%
+    \begin{tabular}{@{}L{1.25cm}L{9cm}L{2.5cm}@{}}
+    \toprule
+    \# & {\scshape name} & {\scshape formula} \\
+    \midrule
+    $f_{98-118}$ & Dependency Locality Theory & \cite{gibson2000} \\
+    $f_{119-139}$ & Number of phrasal, clausal, or sentential constituents & $X$\\
+    $f_{140-137}$ & Mean length of phrase, clause, or T-Unit & $W/X$ \\
+    $f_{138-142}$ & Clausal, sentential, and T-Unit complexity ratios & Variable \\
+    \midrule
+    \multirow{3}{*}{$f_{143-151}$} & Complex Nominal, Complex T-Unit, Coordinate Phrase, Dependent Clause, NP, PP, Relative Clause, Verb Cluster, VP & \multirow{3}{*}{$X/S$}\\
+    \multirow{2}{*}{$f_{152-158}$} & Complex Nominals, Coordinate Phrase, NP, PP, Relative Clause, Verb Cluster, VP & \multirow{2}{*}{$X/CL$}\\
+    \multirow{2}{*}{$f_{159-166}$} & Complex Nominal, Coordindate Phrase, Dependent Clause, NP, PP, Relative Clause, Verb Cluster, VP & \multirow{2}{*}{$X/TU$} \\
+    $f_{167-168}$ & Prenominal Modifer, Postnominal Modifier & $X/NP$\\
+    \midrule
+    \multirow{2}{*}{$f_{169-174}$} & Conditional, Imperfect, Inflected Infinitive, Pluperfect, Preterite, Subjunctive & \multirow{4}{*}{$X/VP$} \\
+    $f_{175-178}$ & Proclitic, Enclitic, Mesoclitic, All & \\
+    $f_{179-183}$ & Clefts & \\
+    \bottomrule
+    \end{tabular}
+    }
+    \caption{Morphosyntactic features. \textbf{Legend:} $W =$ number of words, $S= $ number of sentences, $CL =$ number of clauses, $TU =$ number of T-Units.}
+    \label{tab:msy}
+\end{table}
+
+\begin{table}
+\renewcommand{\arraystretch}{1.2}
+    \centering
+	\resizebox{\columnwidth}{!}{%
+    \begin{tabular}{@{}L{1.25cm}L{4cm}L{7.5cm}@{}}
+    \toprule
+    \# & {\scshape name} & {\scshape tregex pattern} \\
+    \midrule
+    \multirow{4}{*}{$f_{184}$} & \multirow{4}{*}{\textit{é que} Clefts} & \texttt{S|VP [< ((VP|VERB|AUX [{<<} /[Éé]/]) [\$+ ((CP [< ((SCONJ [< /[Qq]ue/]))]) [< (SCONJ [\$+ S])])])]}\\
+    \midrule
+    \multirow{4}{*}{$f_{185}$} & \multirow{4}{*}{It-Clefts} & \texttt{S|VP [< ((VP|VERB|AUX [{<<} COPULA]) [\$+ ((NP [!< (PRON [< /[Oo]/])]) [< (N' [< (CP|NP [< ((NP < PRON) [\$+ S|NP])])])])])]}\\
+    \midrule
+    \multirow{4}{*}{$f_{186}$} & \multirow{4}{*}{Pseudoclefts} & \texttt{S|VP [ < ((NP [< ((NP < (PRON [< /[Oo]|[Qq]uem/])) [\$+ S|NP])]) [\$+ (S|VP [{<<} (VP|VERB|AUX [<1 COPULA])])])]}\\
+    \midrule
+    \multirow{3}{*}{$f_{187}$} & \multirow{3}{*}{Inverted Pseudoclefts} & \texttt{S|VP [< ((VP|VERB|AUX [{<<} COPULA]) [\$+ (NP [<<, (PRON < /[Oo]|[Qq]uem/)] [< N'|CP|S])])]} \\
+    \midrule
+    \multirow{4}{*}{$f_{188}$} & \multirow{4}{*}{WH-Clefts} & \texttt{(S|VP [< ((VP|VERB|AUX [{<<} COPULA]) [\$+ NP])]) [\$+ (NP [< ((NP < PRON) [\$+ (S [< (NP [\$+ VP])])])])]} \\
+    \bottomrule
+    \end{tabular}
+    }
+    \caption{Tregex rules for syntactic complexity based on a constituency parse generated with UD-Bosque tags and left head-finding rules. COPULA refers to the regular expression pattern matching any relevant copular form: \texttt{/[Éé]|
+    [Ff](o(i|r(am?|em)?|ssem?))|[Ee]ram?|[Ss](e(r(iam?|ão|á)|jam?)| ão|ido)/}}
+    \label{tab:tregex}
+\end{table}
+
+\pagebreak
+
+Cohesion measures are incorporated through both the raw tallies of different classes of connectives (see Section~\ref{section:coh}) as well as ratios indicating the usage of certain types in relation to the total number of connectives. Also taken into account are the proportion of single-word and multi-word phrasal connectives.
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+    \centering
+	\resizebox{\columnwidth}{!}{%
+    \begin{tabular}{@{}L{2cm}L{5.5cm}L{5.5cm}@{}}
+    \toprule
+    \# & {\scshape name} & {\scshape formula} \\
+    \midrule
+    $f_{189-196}$ & Number of connectives & $X$ \\
+    $f_{197-206}$ & Cohesive complexity & $X/(N|CO)$ \\
+    \bottomrule
+    \end{tabular}
+    }
+    \caption{Cohesion measures. \textbf{Legend:} $N =$ number of tokens, $CO =$ number of connectives.}
+    \label{tab:coh}
+\end{table}
+
+The remaining 20 measures are global, require little to no linguistic insight, and are calculated straightforwardly. Finally, 15 native languages are represented in the corpus. These were included as categorical features, summing to a total of 241 features.
+
+\begin{table}[b!]
+\renewcommand{\arraystretch}{1.2}
+    \centering
+	\resizebox{\columnwidth}{!}{%
+    \begin{tabular}{@{}L{2cm}L{11cm}@{}}
+    \toprule
+    \# & {\scshape name} \\
+    \midrule
+    $f_{207-208}$ & Standard deviation: token length (syllable, letter) \\
+    $f_{209-211}$ & Standard deviation: sentence length (syllable, letter, token) \\
+    $f_{212-213}$ & Number of word type, token with 2+ syllable \\
+    $f_{214-215}$ & Percent word type, token with 2+ syllable \\
+    \multirow{2}{*}{$f_{216-221}$} & Number of letters, syllables, surface forms, tokens, token types, sentences \\
+    $f_{222-223}$ & Mean token length: syllable, letter \\
+    $f_{224-226}$ & Mean sentence length: syllable, letter, token \\
+    \midrule
+    $f_{226-241}$ & Native language (categorical) \\
+    \bottomrule
+    \end{tabular}
+    }
+    \caption{Shallow complexity features and {\scshape l1}.}
+    \label{tab:shallow}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Supervised Machine Learning}
+
+Traditional machine learning methods have been commonly used for several CEFR level classification tasks, and have generally performed quite well \citep{vajjala2014-estonian, pilan2016-swedish, vajjala2017-features, delrio2019a}. Experiments for this linguistic complexity analysis of {\scshape l2} Portuguese were performed with Random Forests, Support Vector Machines, and Logistic Regression using the scikit-learn library \citep{scikit-learn}.
+
+For each system, hyperparameters were tuned using grid search and 10-fold cross-validation. Feature calculations were scaled to mitigate the effect of high cardinality values, which introduce bias against features with lower value ranges during training. Finally, ablation tests were performed by assessing the systems on different feature subsets to observe the performance of each combination.
+
+\subsection{Feature Selection}
+
+There are multiple calculations that measure similar if not the same metric. For example, the number of surface forms and the number of tokens are very highly correlated. Though usually not a bijective relation, these two features increase almost collinearly. This sort of redundancy should be avoided. Instead, distinct and complementary features have been argued to capture a more diverse, holistic picture of one's {\scshape l2} system \citep{norris2009}. Care was therefore taken to prune undesirable features and reduce model variance prior to evaluation.
+
+Correlation-based feature subset selection \citep[CfsSubsetEval;][]{hall1998} from the WEKA library \citep{weka} was employed to incrementally purge highly correlated features, while retaining those with higher predictive ability of the class. Out of the 241 available features, including each student's native language, 53 were returned, all of which are catalogued in Table~\ref{tab:subsetfeatures}. Relevant features will be elaborated on in Section~\ref{section:discussion}.
+
+\begin{table}%[H]
+\renewcommand{\arraystretch}{1.2}
+    \centering
+    \resizebox*{!}{0.95\textheight}{%
+    \begin{tabular}{@{}L{1.25cm}L{1cm}l@{}}
+        \toprule
+         $f_{1-2}$ & {\scshape sur} & Mean Sentence Length in Letters, Tokens \\
+         $f_3$ & {\scshape sur} & Mean Token Length in Syllables \\
+         $f_4$ & {\scshape sur} & Number of Letters \\
+         $f_5$ & {\scshape sur} & Percentage of Tokens with More Than 2 Syllables \\
+         $f_6$ & {\scshape sur} & Percentage of Word Types with More Than 2 Syllables \\
+         $f_7$ & {\scshape sur} & SD Sentence Length in Letters \\
+         $f_8$ & {\scshape sur} & SD Token Length in Letters \\
+        \midrule
+         $f_{9-11}$ & {\scshape lex} & Age of Acquisition (AW Token; AW, LW Type) \\
+         $f_{12-14}$ & {\scshape lex} & Concreteness (AW, FW Token; LW Type) \\
+         $f_{15-17}$ & {\scshape lex} & Familiarity (AW, LW Type; LW Token) \\
+         $f_{18-20}$ & {\scshape lex} & Imageability (AW Token; AW, LW Type) \\
+         $f_{21}$ & {\scshape lex} & SUBTLEX Contextual Diversity (FW Token) \\
+         $f_{22-25}$ & {\scshape lex} & SUBTLEX Frequency Band 2, 3, 4, 5 \\
+         $f_{26}$ & {\scshape lex} & SUBTLEX Frequency Below Top 5000 \\
+         $f_{27-29}$ & {\scshape lex} & SUBTLEX Log Word Frequency (AW Token; AW, FW Type) \\
+         $f_{30-32}$ & {\scshape lex} & SUBTLEX Word Frequency (AW, FW Type; FW Token) \\
+         $f_{33}$ & {\scshape lex} & Corrected Verb Variation 1 \\
+         \multirow{2}{*}{$f_{34-38}$} & \multirow{2}{*}{{\scshape lex}} & POS Density: Cardinal Number, Interjection, \\
+         & & Punctuation, Subordinating Conjunction, Symbol \\
+        \midrule
+         $f_{39}$ & {\scshape msy} & ``é que" Cleft per VP \\
+         $f_{40}$ & {\scshape msy} & Dependent Clause per Clause \\
+         $f_{41} $ & {\scshape msy} & Dependent Clause per Sentence \\
+         $f_{42}$ & {\scshape msy} & Clause per T-unit \\
+         $f_{43}$ & {\scshape msy} & Mean Length of Noun Phrase \\
+         \multirow{2}{*}{$f_{44-46}$} & \multirow{2}{*}{{\scshape msy}} & Number of Dependent Clauses, It-Clefts, \\
+         & &  Prenominal Noun Modifiers \\
+         $f_{47}$ & {\scshape msy} & Number of Proclitics per VP \\
+         $f_{48-49}$ & {\scshape msy} & Verb per VP: Inflected Infinitive, Subjunctive \\
+        \midrule
+         $f_{50-51}$ & {\scshape coh} & Connectives per Token: Additive, Concessive \\
+         $f_{52} $ & {\scshape coh} & Number of Connectives \\
+        \midrule
+         $f_{53} $ & {\scshape l1} & Russian \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{All features returned by CfsSubsetEval, unranked.}
+    \label{tab:subsetfeatures}
+\end{table}
+
+Table~\ref{tab:infogain} ranks the best features by their information gain. Many of the features appearing in this list have been connected to a more complex language system. The number of letters (\#1) is a general length-based measure that has been shown to be a powerful indicator when paired with other finer-grained measures \citep{norris2009}. \Citet{ortega2012} asserts that complex noun phrases such as (\#3) are characteristic of advanced learners, and had previously found that the amount of subordination as in (\#6) is relevant \citep{wq1998, ortega2003}. Finally, \cite{lu2012} concluded that CVV1 (\#9) is among the best features for assessing lexical variation.
+
+\begin{table}[b!]
+\renewcommand{\arraystretch}{1.2}
+    \centering
+    \begin{tabular}{@{}L{1cm}l@{}}
+        \toprule
+        {\scshape \#} & {\scshape feature name} \\
+        \midrule
+        1 & Number of Letters \\
+        2 & Imageability (AW Type) \\
+        3 & Number of Prenomial Noun Modifier \\
+        4 & Imageability (LW Type) \\
+        5 & SUBTLEX Word Frequency (AW Type) \\
+        6 & Number of Dependent Clauses \\
+        7 & Concreteness (LW Type) \\
+        8 & Age of Acquisition (LW Type) \\
+        9 & Corrected Verb Variation 1\\
+        10 & Concreteness (AW Token) \\
+        \bottomrule
+    \end{tabular}
+    \caption{Top 10 features ranked by information gain according to CfsSubsetEval.}
+    \label{tab:infogain}
+\end{table}
+
+The remaining features are based on lexical sophistication. A plethora of these measures are also present in the entire returned feature subset. These broadly measure the use of ``advanced" words—often corresponding to lower frequency—that demonstrate higher lexical proficiency \citep{crossley2017}. More than half of the top ten features by information gain are related to lexical sophistication: imageability (all and lexical word types), word frequencies (all word types), concreteness (all and lexical word types), and age of acquisition (lexical  word types). \Citet{crossley2012} found that imageability was the strongest predictor of all which is in line with the results returned by CfsSubsetEval, being the second best feature after the general length measure. \Citet{chen2017} also assert that averaging word frequency information using frequency bands characterizes text readability, especially when normalized. Four different Zipfian bands appear, excluding the first band of highly frequent words as well as the lowest bands containing the most rare and obscure ones. Several other frequency features from the SUBTLEX corpus are relevant, further stressing the importance of lexical frequency in measuring growth.
+
+There are many other language-agnostic features returned by CfsSubsetEval that have been established as anchors for complexity analyses in other languages. Notable are the Corrected Verb Variation 1 \citep{lu2012, vajjala2014-estonian}, density of interjections and subordinating conjunctions \citep{vajjala2014-estonian}, dependent clauses per clause \citep{bulte2012}, and clause per T-unit \citep{vyatkina2012}.

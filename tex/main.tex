@@ -1,0 +1,79 @@
+\documentclass[a4,12pt]{article}
+
+%\usepackage{showframe}
+\usepackage{fontspec}
+\setmainfont[Path = ./fonts/,
+BoldFont={MinionPro-Bold.otf},
+ItalicFont={MinionPro-It.otf}
+]{MinionPro-Regular.otf}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black,
+}
+\usepackage[round]{natbib}
+\bibliographystyle{plainnat}
+\usepackage{bibentry}
+\usepackage{url}
+\usepackage[normalem]{ulem}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{./peripheral/tuebingerspruechle-utf8}
+\usepackage{tocloft}
+\usepackage[nottoc]{tocbibind}
+\renewcommand{\bibname}{References}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{tabularx}
+\usepackage{tikz-qtree}
+\usepackage{pdflscape}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{gb4e}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+\onehalfspacing
+
+\title{Analyzing Linguistic Complexity of L2 Portuguese for Automatic Proficiency Classification}
+\author{Eric DeMattos}
+\date{July 2020}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% front matter
+
+\pagenumbering{roman}
+\input{peripheral/title.tex}
+\input{peripheral/honor.tex}
+\input{peripheral/abstract.tex}
+\tableofcontents
+\pagebreak
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% body
+
+\pagenumbering{arabic}
+\input{content/01introduction.tex}
+\input{content/02background.tex}
+\input{content/03data.tex}
+\input{content/04methods.tex}
+\input{content/05results.tex}
+\input{content/06discussion.tex}
+\input{content/07conclusion}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% back matter
+
+\bibliography{peripheral/bibliography.bib}
+
+\end{document}

@@ -1,0 +1,36 @@
+%
+%  Kleine Style-Datei, die das Spruechle fuer Hausarbeiten
+%  u.ae. an der Uni-Tuebingen zur Verfuegung stellt.
+%
+%  Niels Ott <no@drni.de>
+%
+% (Dieses Kommando ueberschreiben fuer eigenen Spruechle:)
+\newcommand{\DasTuebingerSpruechle}{%
+Hiermit versichere ich, dass ich die vorgelegte 
+Arbeit selbstständig und nur mit den angegebenen 
+Quellen und Hilfsmitteln einschließlich des WWW und 
+anderer elektronischer Quellen angefertigt habe.
+Alle Stellen der 
+Arbeit, die ich anderen Werken dem Wortlaut oder dem Sinne 
+nach entnommen habe, sind kenntlich gemacht.%
+}
+%
+%
+% und hier das ganze mit unterschrift aufsagen, name
+% des autors als argument
+\newcommand{\SpruechleAufsagen}[1]{
+\begin{minipage}{0.625\textwidth}%
+\DasTuebingerSpruechle
+
+\bigskip
+
+\bigskip
+
+\flushright
+\newlength\usASpruechle
+\settowidth{\usASpruechle}{Ort, Datum, Unterschrift, Große Handschrift}
+\begin{tabular}{p{\usASpruechle}}\hline
+\hfill \footnotesize {#1}
+\end{tabular} 
+\end{minipage}%
+}
